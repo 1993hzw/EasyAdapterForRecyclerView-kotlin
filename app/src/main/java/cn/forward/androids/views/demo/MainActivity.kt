@@ -37,14 +37,16 @@ class MainActivity : Activity() {
 
         // 创建一个支持多选的适配器
         easyAdapter = object : EasyAdapter<MySelectionHolder>(this, Mode.MULTI_SELECT) {
-            override fun whenCreateViewHolder(parent: ViewGroup?, viewType: Int): MySelectionHolder {
-                return MySelectionHolder(View.inflate(this@MainActivity, R.layout.item_string, null))
-            }
-
             override fun getItemCount(): Int {
                 return data.size
             }
 
+            // 创建ViewHolder
+            override fun whenCreateViewHolder(parent: ViewGroup?, viewType: Int): MySelectionHolder {
+                return MySelectionHolder(View.inflate(this@MainActivity, R.layout.item_string, null))
+            }
+
+            // 绑定数据
             override fun whenBindViewHolder(holder: MySelectionHolder, position: Int) {
                 holder.textView.text = data[position]
             }
