@@ -17,7 +17,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : Activity() {
 
-    lateinit var adapter: EasyAdapter<MySelectionHolder>
+    lateinit var easyAdapter: EasyAdapter<MySelectionHolder>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,16 +26,17 @@ class MainActivity : Activity() {
 
         val layoutManager = GridLayoutManager(this, 2)
         layoutManager.orientation = GridLayoutManager.HORIZONTAL
-        listView.addItemDecoration(object : RecyclerView.ItemDecoration() {
+        recyclerView.addItemDecoration(object : RecyclerView.ItemDecoration() {
             override fun getItemOffsets(outRect: Rect?, view: View?, parent: RecyclerView?, state: RecyclerView.State?) {
                 outRect?.set(10, 10, 10, 10)
             }
         })
 
-        listView.layoutManager = layoutManager
+        recyclerView.layoutManager = layoutManager
         val data: Array<String> = arrayOf("篮球", "足球", "羽毛球", "乒乓球", "排球", "橄榄球", "棒球")
 
-        adapter = object : EasyAdapter<MySelectionHolder>(this, Mode.MULTI_SELECT) {
+        // 创建一个支持多选的适配器
+        easyAdapter = object : EasyAdapter<MySelectionHolder>(this, Mode.MULTI_SELECT) {
             override fun whenCreateViewHolder(parent: ViewGroup?, viewType: Int): MySelectionHolder {
                 return MySelectionHolder(View.inflate(this@MainActivity, R.layout.item_string, null))
             }
@@ -50,23 +51,23 @@ class MainActivity : Activity() {
         }
 
         // 设置选择监听器
-        adapter.onItemSelectedListener = object : EasyAdapter.OnItemSelectedListener {
+        easyAdapter.onItemSelectedListener = object : EasyAdapter.OnItemSelectedListener {
             override fun onSelected(position: Int, isSelected: Boolean): Boolean {
                 Toast.makeText(this@MainActivity, "selected:$position $isSelected", Toast.LENGTH_SHORT).show()
                 return true
             }
 
             override fun onOutOfMax(position: Int) {
-                Toast.makeText(this@MainActivity, "onOutOfMax:" + adapter.maxSelection, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MainActivity, "onOutOfMax:" + easyAdapter.maxSelection, Toast.LENGTH_SHORT).show()
             }
         }
 
         // 设置点击监听器
-        adapter.setOnItemClickedListener { it ->
+        easyAdapter.setOnItemClickedListener { it ->
             Toast.makeText(this, "clicked:" + it, Toast.LENGTH_SHORT).show()
         }
 
-        listView.adapter = adapter
+        recyclerView.adapter = easyAdapter
 
 
         val dataList = ArrayList<String>()
@@ -84,10 +85,10 @@ class MainActivity : Activity() {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 panelMultiSel.visibility = View.GONE
                 when (position) { // 设置模式
-                    0 -> adapter.mode = EasyAdapter.Mode.CLICK
-                    1 -> adapter.mode = EasyAdapter.Mode.SINGLE_SELECT
+                    0 -> easyAdapter.mode = EasyAdapter.Mode.CLICK
+                    1 -> easyAdapter.mode = EasyAdapter.Mode.SINGLE_SELECT
                     2 -> {
-                        adapter.mode = EasyAdapter.Mode.MULTI_SELECT
+                        easyAdapter.mode = EasyAdapter.Mode.MULTI_SELECT
                         panelMultiSel.visibility = View.VISIBLE
                     }
                 }
@@ -97,7 +98,7 @@ class MainActivity : Activity() {
 
         // 设置最大可选数量
         pickerMaxSelect.setOnSelectedListener { scrollPickerView, i ->
-            adapter.maxSelection = i
+            easyAdapter.maxSelection = i
         }
         pickerMaxSelect.data = listOf("0", "1", "2", "3", "4", "5", "6", "7")
         pickerMaxSelect.selectedPosition = 0
@@ -105,11 +106,11 @@ class MainActivity : Activity() {
     }
 
     fun selectAll(view: View) {
-        adapter.selectAll()
+        easyAdapter.selectAll()
     }
 
     fun reverseSelectAll(view: View) {
-        adapter.reverseSelected()
+        easyAdapter.reverseSelected()
     }
 }
 
