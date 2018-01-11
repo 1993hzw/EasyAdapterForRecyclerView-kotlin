@@ -52,6 +52,12 @@ class MainActivity : Activity() {
             }
         }
 
+        // 设置点击监听器
+        easyAdapter.setOnItemClickedListener { it ->
+            Toast.makeText(this, "clicked:" + it, Toast.LENGTH_SHORT).show()
+        }
+
+        // 设置单选监听器
         easyAdapter.onSingleSelectListener = object : EasyAdapter.OnSingleSelectListener {
             override fun onSelected(position: Int) {
                 Toast.makeText(this@MainActivity, "selected:$position", Toast.LENGTH_SHORT).show()
@@ -59,7 +65,7 @@ class MainActivity : Activity() {
 
         }
 
-        // 设置多选择监听器
+        // 设置多选监听器
         easyAdapter.onMultiSelectListener = object : EasyAdapter.OnMultiSelectListener {
             override fun onSelected(position: Int, isSelected: Boolean) {
                 Toast.makeText(this@MainActivity, "selected:$position $isSelected", Toast.LENGTH_SHORT).show()
@@ -68,11 +74,6 @@ class MainActivity : Activity() {
             override fun onOutOfMax(position: Int) {
                 Toast.makeText(this@MainActivity, "onOutOfMax:" + easyAdapter.maxSelectionCount, Toast.LENGTH_SHORT).show()
             }
-        }
-
-        // 设置点击监听器
-        easyAdapter.setOnItemClickedListener { it ->
-            Toast.makeText(this, "clicked:" + it, Toast.LENGTH_SHORT).show()
         }
 
         recyclerView.adapter = easyAdapter
