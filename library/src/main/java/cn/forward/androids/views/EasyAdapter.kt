@@ -8,14 +8,14 @@ import android.widget.FrameLayout
 /**
  * 用于RecyclerView的适配器
  * @param mode 可区分点击模式、单选和多选模式
- * @param maxSelection 用于多选模式，设置最大的选择数量，maxSelection<=0 表示不限制选择数
+ * @param maxSelection 用于多选模式，设置最大的选择数量，maxSelectionCount<=0 表示不限制选择数
  */
 abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode: Mode = Mode.CLICK, maxSelection: Int = -1) : RecyclerView.Adapter<EasyAdapter.SelectionViewHolder<VH>>() {
 
     /**
-     * 最大可选的数量，maxSelection<=0表示不限制选择数量
+     * 最大可选的数量，maxSelectionCount<=0表示不限制选择数量
      */
-    var maxSelection = maxSelection
+    var maxSelectionCount = maxSelection
         set(value) {
             field = value
             if (field > 0) {
@@ -31,26 +31,26 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
      */
     var mode = mode
         set(value) {
-            if (field != Mode.SINGLE_SELECT && value == Mode.SINGLE_SELECT) { // 切换到单选，清空选择项
-                selectedSet.clear()
-            }
             field = value
             notifyDataSetChanged()
         }
 
-    var onItemClickedListener: OnItemClickedListener? = null
-    var onItemSelectedListener: OnItemSelectedListener? = null
-
-    fun setOnItemSelectedListener(listener: (position: Int, isSelected: Boolean) -> Boolean) {
-        onItemSelectedListener = object : OnItemSelectedListener {
-            override fun onOutOfMax(position: Int) {
+    /**
+     * 单选项的索引
+     */
+    var singleSelectedPosition = 0
+        set(value) {
+            if (field == value) {
+                return
             }
-
-            override fun onSelected(position: Int, isSelected: Boolean): Boolean {
-                return listener(position, isSelected)
-            }
+            field = value
+            onSingleSelectListener?.onSelected(value)
+            notifyDataSetChanged()
         }
-    }
+
+    var onItemClickedListener: OnItemClickedListener? = null
+    var onSingleSelectListener: OnSingleSelectListener? = null
+    var onMultiSelectListener: OnMultiSelectListener? = null
 
     fun setOnItemClickedListener(listener: (position: Int) -> Unit) {
         onItemClickedListener = object : OnItemClickedListener {
@@ -59,6 +59,26 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
             }
         }
     }
+
+    fun setSingleSelectListener(listener: (position: Int) -> Unit) {
+        onSingleSelectListener = object : OnSingleSelectListener {
+            override fun onSelected(position: Int) {
+                listener(position)
+            }
+        }
+    }
+
+    fun setMultiSelectListener(listener: (position: Int, isSelected: Boolean) -> Unit) {
+        onMultiSelectListener = object : OnMultiSelectListener {
+            override fun onOutOfMax(position: Int) {
+            }
+
+            override fun onSelected(position: Int, isSelected: Boolean) {
+                listener(position, isSelected)
+            }
+        }
+    }
+
 
     /**
      * 记录已选择的item
@@ -79,29 +99,24 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
             if (mode == Mode.CLICK) {
                 onItemClickedListener?.onClicked(pos)
             } else if (mode == Mode.SINGLE_SELECT) {
-                selectedSet.clear()
-                selectedSet.add(pos)
-                onItemSelectedListener?.onSelected(pos, true)
-                notifyDataSetChanged()
+                singleSelectedPosition = pos
             } else if (mode == Mode.MULTI_SELECT) {
-
-                if (maxSelection > 0 &&
-                        selectedSet.size >= maxSelection // 达到限制
+                if (maxSelectionCount > 0 &&
+                        selectedSet.size >= maxSelectionCount // 达到限制
                         && !selectedSet.contains(pos)) { // 且选择新的一项
-                    onItemSelectedListener?.onOutOfMax(pos)
+                    onMultiSelectListener?.onOutOfMax(pos)
                     return@setOnClickListener
                 }
-                val isSelected = selectedSet.contains(pos)
-                if (onItemSelectedListener?.onSelected(pos, !isSelected) == true) {
-                    if (isSelected) {
-                        selectedSet.remove(pos)
-                    } else {
-                        selectedSet.add(pos)
-                    }
-                    notifyDataSetChanged()
+                var isSelected = selectedSet.contains(pos)
+                if (isSelected) {
+                    selectedSet.remove(pos)
+                } else {
+                    selectedSet.add(pos)
                 }
+                onMultiSelectListener?.onSelected(pos, !isSelected)
+                notifyDataSetChanged()
 
-                //   Log.e("test", "$maxSelection ${selectedSet.size} {${selectedSet}}")
+                //   Log.e("test", "$maxSelectionCount ${selectedSet.size} {${selectedSet}}")
             }
         }
 
@@ -111,40 +126,34 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
     override fun onBindViewHolder(holder: SelectionViewHolder<VH>, position: Int) {
         whenBindViewHolder(holder.viewHolder, position)
         holder.itemView.tag = position
-        if (mode == Mode.SINGLE_SELECT && selectedSet.size == 0) { // 单选默认选择第一个
-            selectedSet += 0
-        }
         when (mode) {
             Mode.CLICK -> holder.itemView.isSelected = false
-            Mode.SINGLE_SELECT, Mode.MULTI_SELECT -> holder.itemView.isSelected = selectedSet.contains(position)
+            Mode.SINGLE_SELECT -> holder.itemView.isSelected = singleSelectedPosition == position
+            Mode.MULTI_SELECT -> holder.itemView.isSelected = selectedSet.contains(position)
         }
 
     }
 
     /**
-     * 全选
+     * 全选，，只在maxSelection不限制可选数时有效
      */
     fun selectAll() {
-        if (mode == Mode.SINGLE_SELECT) return
-        if (maxSelection > 0) return
+        if (maxSelectionCount > 0) return
 
         selectedSet += 0..itemCount
-
         notifyDataSetChanged()
     }
 
     fun unselectAll() {
-        if (mode == Mode.SINGLE_SELECT) return
         selectedSet.clear()
         notifyDataSetChanged()
     }
 
     /**
-     * 反选
+     * 反选，只在maxSelection不限制可选数时有效
      */
     fun reverseSelected() {
-        if (mode == Mode.SINGLE_SELECT) return
-        if (maxSelection > 0) return
+        if (maxSelectionCount > 0) return
 
         val set = HashSet(selectedSet)
         selectedSet += 0..itemCount
@@ -153,33 +162,43 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
         notifyDataSetChanged()
     }
 
-    fun select(position: Int) {
-        if (maxSelection > 1 && selectedSet.size >= maxSelection) {
-            return
-        }
-
+    /**
+     * 选中某项。单选时只有position[0]才生效
+     */
+    fun select(vararg position: Int) {
         if (mode == Mode.SINGLE_SELECT) { // 单选
-            selectedSet.clear()
+            singleSelectedPosition = position[0]
+            onSingleSelectListener?.onSelected(singleSelectedPosition)
+        } else {
+            position.filter { it !in selectedSet && it < itemCount }
+                    .forEach {
+                        // 检查是否超出限制
+                        if (maxSelectionCount > 1 && selectedSet.size >= maxSelectionCount) {
+                            onMultiSelectListener?.onOutOfMax(it)
+                        } else {
+                            selectedSet += it
+                            onMultiSelectListener?.onSelected(it, true)
+                        }
+                    }
+            notifyDataSetChanged()
         }
-        selectedSet += position
     }
 
-    fun unselect(position: Int) {
-        if (mode == Mode.SINGLE_SELECT) return
-
-        selectedSet.remove(position)
+    fun unselect(vararg position: Int) {
+        position.filter { it in selectedSet && it < itemCount }
+                .forEach {
+                    selectedSet -= it
+                    onMultiSelectListener?.onSelected(it, false)
+                }
+        notifyDataSetChanged()
     }
+
 
     fun isSelected(position: Int): Boolean {
         return selectedSet.contains(position)
     }
 
     fun selectedSet() = LinkedHashSet<Int>(selectedSet)
-
-    fun getSingleSelectedPosition(): Int {
-        if (mode != Mode.SINGLE_SELECT) return -1
-        return selectedSet.last()
-    }
 
     /**
      * 可区分点击模式、单选和多选模式
@@ -204,21 +223,32 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
     }
 
     /**
-     * 选择item的监听器
+     * 单选的监听器
      */
-    interface OnItemSelectedListener {
+    interface OnSingleSelectListener {
+        fun onSelected(position: Int)
+    }
+
+    /**
+     * 多选的监听器
+     */
+    interface OnMultiSelectListener {
+
+
         /**
          * 选择的时候回调
          * @param position 选择的索引位置
          * @param isSelected true为选中，false取消选中
-         * @return 返回true表示该次选择生效，false为不生效
          */
-        fun onSelected(position: Int, isSelected: Boolean): Boolean
+        fun onSelected(position: Int, isSelected: Boolean)
 
         /**
          * 超出最大选择数量时回调
          */
-        fun onOutOfMax(position: Int)
+        fun onOutOfMax(position: Int) {
+
+        }
+
     }
 
 }

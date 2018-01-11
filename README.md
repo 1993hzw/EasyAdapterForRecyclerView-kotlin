@@ -22,7 +22,7 @@ easyAdapter = object : EasyAdapter<MySelectionHolder>(this, Mode.MULTI_SELECT) {
     override fun getItemCount(): Int {
         return data.size
     }
-    
+
     // 创建ViewHolder
     override fun whenCreateViewHolder(parent: ViewGroup?, viewType: Int): MySelectionHolder {
         return MySelectionHolder(View.inflate(this@MainActivity, R.layout.item_string, null))
@@ -35,14 +35,13 @@ easyAdapter = object : EasyAdapter<MySelectionHolder>(this, Mode.MULTI_SELECT) {
 }
 
 // 设置选择监听器
-easyAdapter.onItemSelectedListener = object : EasyAdapter.OnItemSelectedListener {
-    override fun onSelected(position: Int, isSelected: Boolean): Boolean {
+easyAdapter.onMultiSelectListener = object : EasyAdapter.OnMultiSelectListener {
+    override fun onSelected(position: Int, isSelected: Boolean) {
         Toast.makeText(this@MainActivity, "selected:$position $isSelected", Toast.LENGTH_SHORT).show()
-        return true
     }
 
     override fun onOutOfMax(position: Int) {
-        Toast.makeText(this@MainActivity, "onOutOfMax:" + easyAdapter.maxSelection, Toast.LENGTH_SHORT).show()
+        Toast.makeText(this@MainActivity, "onOutOfMax:" + easyAdapter.maxSelectionCount, Toast.LENGTH_SHORT).show()
     }
 }
 

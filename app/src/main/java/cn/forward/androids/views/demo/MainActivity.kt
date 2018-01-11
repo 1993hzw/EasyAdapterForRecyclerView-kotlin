@@ -52,15 +52,21 @@ class MainActivity : Activity() {
             }
         }
 
-        // 设置选择监听器
-        easyAdapter.onItemSelectedListener = object : EasyAdapter.OnItemSelectedListener {
-            override fun onSelected(position: Int, isSelected: Boolean): Boolean {
+        easyAdapter.onSingleSelectListener = object : EasyAdapter.OnSingleSelectListener {
+            override fun onSelected(position: Int) {
+                Toast.makeText(this@MainActivity, "selected:$position", Toast.LENGTH_SHORT).show()
+            }
+
+        }
+
+        // 设置多选择监听器
+        easyAdapter.onMultiSelectListener = object : EasyAdapter.OnMultiSelectListener {
+            override fun onSelected(position: Int, isSelected: Boolean) {
                 Toast.makeText(this@MainActivity, "selected:$position $isSelected", Toast.LENGTH_SHORT).show()
-                return true
             }
 
             override fun onOutOfMax(position: Int) {
-                Toast.makeText(this@MainActivity, "onOutOfMax:" + easyAdapter.maxSelection, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MainActivity, "onOutOfMax:" + easyAdapter.maxSelectionCount, Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -100,7 +106,7 @@ class MainActivity : Activity() {
 
         // 设置最大可选数量
         pickerMaxSelect.setOnSelectedListener { scrollPickerView, i ->
-            easyAdapter.maxSelection = i
+            easyAdapter.maxSelectionCount = i
         }
         pickerMaxSelect.data = listOf("0", "1", "2", "3", "4", "5", "6", "7")
         pickerMaxSelect.selectedPosition = 0
