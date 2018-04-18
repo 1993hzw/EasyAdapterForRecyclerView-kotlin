@@ -73,6 +73,11 @@ easyAdapter.onMultiSelectListener = object : EasyAdapter.OnMultiSelectListener {
 
 recyclerView.adapter = easyAdapter
 
+//设置模式
+// easyAdapter.mode = EasyAdapter.Mode.CLICK // 点击
+// easyAdapter.mode = EasyAdapter.Mode.SINGLE_SELECT // 单选
+// easyAdapter.mode = EasyAdapter.Mode.MULTI_SELECT // 多选
+// easyAdapter.maxSelectionCount = 10 // 多选时的最大可选数
 ...
 ```
 

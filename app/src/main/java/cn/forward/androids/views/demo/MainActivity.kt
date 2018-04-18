@@ -75,13 +75,13 @@ class MainActivity : Activity() {
             override fun onSelected(selectionMode: EasyAdapter.SelectionMode, selectedSet: Set<Int>) {
                 when (selectionMode) {
                     EasyAdapter.SelectionMode.SELECT_ALL
-                    -> Toast.makeText(this@MainActivity, "select all", Toast.LENGTH_SHORT).show()
+                    -> Toast.makeText(this@MainActivity, "select all:" + selectedSet, Toast.LENGTH_SHORT).show()
 
                     EasyAdapter.SelectionMode.UNSELECT_ALL
-                    -> Toast.makeText(this@MainActivity, "unselect all", Toast.LENGTH_SHORT).show()
+                    -> Toast.makeText(this@MainActivity, "unselect all:" + selectedSet, Toast.LENGTH_SHORT).show()
 
                     EasyAdapter.SelectionMode.REVERSE_SELECTED
-                    -> Toast.makeText(this@MainActivity, "reverse selected", Toast.LENGTH_SHORT).show()
+                    -> Toast.makeText(this@MainActivity, "reverse selected:" + selectedSet, Toast.LENGTH_SHORT).show()
                 }
 
             }
@@ -91,7 +91,7 @@ class MainActivity : Activity() {
             }
 
             override fun onOutOfMax(position: Int) {
-                Toast.makeText(this@MainActivity, "onOutOfMax:" + easyAdapter.maxSelectionCount, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MainActivity, "select:" + position + " onOutOfMax:" + easyAdapter.maxSelectionCount, Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -127,6 +127,7 @@ class MainActivity : Activity() {
         // 设置最大可选数量
         pickerMaxSelect.setOnSelectedListener { scrollPickerView, i ->
             easyAdapter.maxSelectionCount = i
+            easyAdapter.select(1, 2, 3)
         }
         pickerMaxSelect.data = listOf("0", "1", "2", "3", "4", "5", "6", "7")
         pickerMaxSelect.selectedPosition = 0

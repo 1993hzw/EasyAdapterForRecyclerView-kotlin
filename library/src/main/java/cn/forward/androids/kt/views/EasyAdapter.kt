@@ -169,7 +169,7 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
     fun selectAll() {
         if (maxSelectionCount > 0) return
 
-        selectedSet += 0..itemCount
+        selectedSet += 0 until itemCount
         onMultiSelectListener?.onSelected(SelectionMode.SELECT_ALL, LinkedHashSet(selectedSet))
         notifyDataSetChanged()
     }
@@ -187,7 +187,7 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
         if (maxSelectionCount > 0) return
 
         val set = HashSet(selectedSet)
-        selectedSet += 0..itemCount
+        selectedSet += 0 until itemCount
         selectedSet.removeAll(set)
         onMultiSelectListener?.onSelected(SelectionMode.REVERSE_SELECTED, LinkedHashSet(selectedSet))
         notifyDataSetChanged()
@@ -204,7 +204,7 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
             position.filter { it !in selectedSet && it < itemCount }
                     .forEach {
                         // 检查是否超出限制
-                        if (maxSelectionCount > 1 && selectedSet.size >= maxSelectionCount) {
+                        if (maxSelectionCount > 0 && selectedSet.size >= maxSelectionCount) {
                             onMultiSelectListener?.onOutOfMax(it)
                         } else {
                             selectedSet += it
