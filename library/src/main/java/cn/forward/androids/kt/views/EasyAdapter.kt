@@ -13,6 +13,16 @@ import android.widget.FrameLayout
 abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode: Mode = Mode.CLICK, maxSelection: Int = -1) : RecyclerView.Adapter<EasyAdapter.SelectionViewHolder<VH>>() {
 
     /**
+     * 作用等同于RecyclerView.Adapter.onCreateViewHolder()
+     */
+    abstract fun whenCreateViewHolder(parent: ViewGroup?, viewType: Int): VH
+
+    /**
+     * 作用等同于RecyclerView.Adapter.onBindViewHolder()
+     */
+    abstract fun whenBindViewHolder(holder: VH, position: Int)
+
+    /**
      * 最大可选的数量，maxSelectionCount<=0表示不限制选择数量
      */
     var maxSelectionCount = maxSelection
@@ -49,6 +59,7 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
         }
 
     var onItemClickedListener: OnItemClickedListener? = null
+    var onItemLongClickedListener: OnItemLongClickedListener? = null
     var onSingleSelectListener: OnSingleSelectListener? = null
     var onMultiSelectListener: OnMultiSelectListener? = null
 
@@ -56,6 +67,14 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
         onItemClickedListener = object : OnItemClickedListener {
             override fun onClicked(position: Int) {
                 listener(position)
+            }
+        }
+    }
+
+    fun setOnItemLongClickedListener(listener: (position: Int) -> Boolean) {
+        onItemLongClickedListener = object : OnItemLongClickedListener {
+            override fun onLongClicked(position: Int): Boolean {
+                return listener(position)
             }
         }
     }
@@ -85,17 +104,12 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
      */
     private val selectedSet = LinkedHashSet<Int>()
 
-    abstract fun whenCreateViewHolder(parent: ViewGroup?, viewType: Int): VH
-
-    abstract fun whenBindViewHolder(holder: VH, position: Int)
-
-
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): SelectionViewHolder<VH> {
         val vh = whenCreateViewHolder(parent, viewType)
-
+        // 获取外部创建的ViewHolder,进行进一步的封装
         val viewHolder = SelectionViewHolder(vh)
         viewHolder.itemView.setOnClickListener {
-            val pos = viewHolder.itemView.tag as Int
+            val pos = viewHolder.adapterPosition
             if (mode == Mode.CLICK) {
                 onItemClickedListener?.onClicked(pos)
             } else if (mode == Mode.SINGLE_SELECT) {
@@ -119,13 +133,21 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
                 //   Log.e("test", "$maxSelectionCount ${selectedSet.size} {${selectedSet}}")
             }
         }
+        viewHolder.itemView.setOnLongClickListener { v ->
+            val pos = viewHolder.adapterPosition
+            if (onItemLongClickedListener != null) {
+                onItemLongClickedListener!!.onLongClicked(pos)
+            } else {
+                false
+            }
+
+        }
 
         return viewHolder
     }
 
     override fun onBindViewHolder(holder: SelectionViewHolder<VH>, position: Int) {
         whenBindViewHolder(holder.viewHolder, position)
-        holder.itemView.tag = position
         when (mode) {
             Mode.CLICK -> holder.itemView.isSelected = false
             Mode.SINGLE_SELECT -> holder.itemView.isSelected = singleSelectedPosition == position
@@ -220,6 +242,13 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
      */
     interface OnItemClickedListener {
         fun onClicked(position: Int)
+    }
+
+    /**
+     * 长按item的监听器
+     */
+    interface OnItemLongClickedListener {
+        fun onLongClicked(position: Int): Boolean
     }
 
     /**

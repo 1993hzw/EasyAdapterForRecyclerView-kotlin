@@ -57,6 +57,11 @@ class MainActivity : Activity() {
             Toast.makeText(this, "clicked:" + it, Toast.LENGTH_SHORT).show()
         }
 
+        easyAdapter.setOnItemLongClickedListener { it ->
+            Toast.makeText(this, "long clicked:" + it, Toast.LENGTH_SHORT).show()
+            true
+        }
+
         // 设置单选监听器
         easyAdapter.onSingleSelectListener = object : EasyAdapter.OnSingleSelectListener {
             override fun onSelected(position: Int) {
@@ -124,6 +129,6 @@ class MainActivity : Activity() {
 }
 
 class MySelectionHolder(view: View) : RecyclerView.ViewHolder(view) {
-    val textView = view.findViewById<TextView>(R.id.textview)
+    val textView = view.findViewById(R.id.textview) as TextView
 
 }
