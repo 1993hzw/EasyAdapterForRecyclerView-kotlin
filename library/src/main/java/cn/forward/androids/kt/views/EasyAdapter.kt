@@ -87,8 +87,15 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
         }
     }
 
+    /**
+     * lambda表达式，仅监听多选时单个选择的回调
+     */
     fun setMultiSelectListener(listener: (position: Int, isSelected: Boolean) -> Unit) {
         onMultiSelectListener = object : OnMultiSelectListener {
+            override fun onSelected(selectionMode: SelectionMode, selectedSet: Set<Int>) {
+
+            }
+
             override fun onOutOfMax(position: Int) {
             }
 
@@ -163,11 +170,13 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
         if (maxSelectionCount > 0) return
 
         selectedSet += 0..itemCount
+        onMultiSelectListener?.onSelected(SelectionMode.SELECT_ALL, LinkedHashSet(selectedSet))
         notifyDataSetChanged()
     }
 
     fun unselectAll() {
         selectedSet.clear()
+        onMultiSelectListener?.onSelected(SelectionMode.UNSELECT_ALL, LinkedHashSet(selectedSet))
         notifyDataSetChanged()
     }
 
@@ -180,7 +189,7 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
         val set = HashSet(selectedSet)
         selectedSet += 0..itemCount
         selectedSet.removeAll(set)
-
+        onMultiSelectListener?.onSelected(SelectionMode.REVERSE_SELECTED, LinkedHashSet(selectedSet))
         notifyDataSetChanged()
     }
 
@@ -259,17 +268,32 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
     }
 
     /**
+     * 多选操作
+     */
+    enum class SelectionMode {
+        SELECT_ALL, // 全选
+        UNSELECT_ALL, // 全不选
+        REVERSE_SELECTED, // 反选
+    }
+
+    /**
      * 多选的监听器
      */
     interface OnMultiSelectListener {
 
-
         /**
-         * 选择的时候回调
+         * 选择一个时的回调
          * @param position 选择的索引位置
          * @param isSelected true为选中，false取消选中
          */
         fun onSelected(position: Int, isSelected: Boolean)
+
+        /**
+         * 复杂多选操作的回调
+         * @param selectionMode 多选操作类型
+         * @param selectedSet 选中的集合
+         */
+        fun onSelected(selectionMode: SelectionMode, selectedSet: Set<Int>)
 
         /**
          * 超出最大选择数量时回调
@@ -277,7 +301,6 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
         fun onOutOfMax(position: Int) {
 
         }
-
     }
 
 }
