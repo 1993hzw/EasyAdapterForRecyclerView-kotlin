@@ -127,7 +127,6 @@ class MainActivity : Activity() {
         // 设置最大可选数量
         pickerMaxSelect.setOnSelectedListener { scrollPickerView, i ->
             easyAdapter.maxSelectionCount = i
-            easyAdapter.select(1, 2, 3)
         }
         pickerMaxSelect.data = listOf("0", "1", "2", "3", "4", "5", "6", "7")
         pickerMaxSelect.selectedPosition = 0
