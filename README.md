@@ -49,6 +49,19 @@ easyAdapter.onSingleSelectListener = object : EasyAdapter.OnSingleSelectListener
 
 // 设置多选监听器
 easyAdapter.onMultiSelectListener = object : EasyAdapter.OnMultiSelectListener {
+    override fun onSelected(selectionMode: EasyAdapter.SelectionMode, selectedSet: Set<Int>) {
+       when (selectionMode) {
+           EasyAdapter.SelectionMode.SELECT_ALL
+           -> Toast.makeText(this@MainActivity, "select all", Toast.LENGTH_SHORT).show()
+    
+           EasyAdapter.SelectionMode.UNSELECT_ALL
+           -> Toast.makeText(this@MainActivity, "unselect all", Toast.LENGTH_SHORT).show()
+    
+           EasyAdapter.SelectionMode.REVERSE_SELECTED
+           -> Toast.makeText(this@MainActivity, "reverse selected", Toast.LENGTH_SHORT).show()
+       }
+   
+    }
     override fun onSelected(position: Int, isSelected: Boolean) {
         Toast.makeText(this@MainActivity, "selected:$position $isSelected", Toast.LENGTH_SHORT).show()
     }
@@ -62,3 +75,11 @@ recyclerView.adapter = easyAdapter
 
 ...
 ```
+
+#### 更新信息
+
+* v1.1(2)
+   
+    1. 新增item长按监听
+    2. 新增多选操作监听
+    3. 修复bugs
