@@ -41,7 +41,12 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
      */
     var mode = mode
         set(value) {
+            if (field == value) {
+                return
+            }
+            var old = field
             field = value
+            onModeChangedListener?.onModeChanged(old, field)
             notifyDataSetChanged()
         }
 
@@ -62,6 +67,7 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
     var onItemLongClickedListener: OnItemLongClickedListener? = null
     var onSingleSelectListener: OnSingleSelectListener? = null
     var onMultiSelectListener: OnMultiSelectListener? = null
+    var onModeChangedListener: OnModeChangedListener? = null
 
     fun setOnItemClickedListener(listener: (position: Int) -> Unit) {
         onItemClickedListener = object : OnItemClickedListener {
@@ -302,6 +308,13 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
         fun onOutOfMax(position: Int) {
 
         }
+    }
+
+    /**
+     * 模式改变监听
+     */
+    interface OnModeChangedListener {
+        fun onModeChanged(oldMode: Mode, newMode: Mode)
     }
 
 }
