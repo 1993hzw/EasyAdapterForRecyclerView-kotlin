@@ -121,6 +121,7 @@ abstract class EasyAdapter<VH : RecyclerView.ViewHolder>(context: Context, mode:
                 onItemClickedListener?.onClicked(pos)
             } else if (mode == Mode.SINGLE_SELECT) {
                 singleSelectedPosition = pos
+                notifyDataSetChanged()
             } else if (mode == Mode.MULTI_SELECT) {
                 if (maxSelectionCount > 0 &&
                         selectedSet.size >= maxSelectionCount // 达到限制
