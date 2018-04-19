@@ -11,7 +11,7 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.TextView
 import android.widget.Toast
-import cn.forward.androids.views.EasyAdapter
+import cn.forward.androids.kt.views.EasyAdapter
 import kotlinx.android.synthetic.main.activity_main.*
 
 

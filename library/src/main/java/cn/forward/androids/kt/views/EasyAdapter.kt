@@ -1,4 +1,4 @@
-package cn.forward.androids.views
+package cn.forward.androids.kt.views
 
 import android.content.Context
 import android.support.v7.widget.RecyclerView
